@@ -4,6 +4,9 @@ backend:
     install:
       runtime-versions:
         nodejs: 20
+    prebuild:
+      commands:
+        - npm install
     build:
       commands:
         - echo "Build environment is $CODEBUILD_BUILD_IMAGE"
