@@ -29,8 +29,8 @@ export class McpServerConstruct extends Construct {
             timeout: cdk.Duration.minutes(15),
             // memorySize: 3000,
             environment: {
-                AGENT_MODEL_ID: 'us.anthropic.claude-3-5-haiku-20241022-v1:0',
-
+                // AGENT_MODEL_ID: 'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+                AGENT_MODEL_ID: 'us.anthropic.claude-3-7-sonnet-20250219-v1:0',
                 // MODEL_ID: 'us.anthropic.claude-3-sonnet-20240229-v1:0',
                 // MODEL_ID: 'us.amazon.nova-pro-v1:0'
                 // TEXT_TO_TABLE_MODEL_ID: 'us.amazon.nova-pro-v1:0'

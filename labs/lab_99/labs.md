@@ -80,7 +80,8 @@ In this lab, you'll learn how to initialize and interact with a large language m
 ```javascript
 // Initialize Bedrock LLM
 llm = new ChatBedrockConverse({
-    model: "us.anthropic.claude-3-5-haiku-20241022-v1:0"
+    model: "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+    // model: "us.anthropic.claude-3-5-haiku-20241022-v1:0"
 });
 
 (async () => {

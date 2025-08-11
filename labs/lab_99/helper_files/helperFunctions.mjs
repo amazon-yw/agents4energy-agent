@@ -13,7 +13,8 @@ const {
 process.env.AWS_DEFAULT_REGION='us-east-1'
 
 const llm = new ChatBedrockConverse({
-    model: "us.anthropic.claude-3-5-haiku-20241022-v1:0"
+    // model: "us.anthropic.claude-3-5-haiku-20241022-v1:0"
+    model: "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
 });
 
 // Define available tools
