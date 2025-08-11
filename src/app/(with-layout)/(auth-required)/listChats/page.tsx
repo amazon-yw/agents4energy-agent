@@ -50,7 +50,7 @@ const Page = () => {
                                 startIcon={<DeleteIcon />}
                                 color="secondary"
                                 onClick={async () => {
-                                    if (window.confirm(`Are you sure you want to delete the chat "${chatSession.name}"?`)) {
+                                    if (window.confirm(`Are you sure you want to delete the chat "${chatSession.id}"?`)) {
                                         await amplifyClient.models.ChatSession.delete({ id: chatSession.id! });
                                         setChatSessions(chatSessions.filter(c => c.id !== chatSession.id));
                                     }

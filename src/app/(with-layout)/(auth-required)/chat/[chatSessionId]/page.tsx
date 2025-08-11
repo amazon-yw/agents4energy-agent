@@ -20,7 +20,7 @@ function Page({
 }) {
     const [activeChatSession, setActiveChatSession] = useState<Schema["ChatSession"]["createType"]>();
     const [fileDrawerOpen, setFileDrawerOpen] = useState(false);
-    const [showChainOfThought, setShowChainOfThought] = useState(false);
+    const [showChainOfThought, setShowChainOfThought] = useState(true);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
