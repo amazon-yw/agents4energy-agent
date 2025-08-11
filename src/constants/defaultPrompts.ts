@@ -1,4 +1,19 @@
 export const defaultPrompts = [
+    `I manage a fleet of wind farms and want to maximize energy production while minimizing operational expense. 
+Let me check our fleet performance for this quarter. Compare the actual production to the forecasted production for each wind farm.
+Generate the necessary time series data and render a dashboard to visualize the performance of each wind farm.`,
+    `Create a demo to optimize the maintenance schedule for a fleet of wellsite compressors in the San Juan basin.
+Generate non-optimized data with historic maintenance events, compressor failures, and time series compressor data.
+Analyze the data to find an optimized maintenance plan and estimate the cost savings.
+Create a comprehensive report and render it for visualization.`,
+    `I compare completion designs and oil production data for an upstream oil company.
+Generate 10,000 well fracturing completion designs (well spacing, lateral length, perforation cluster spacing, pumped water volumes, pumped proppand sand lbs, number of frac'ing stages)
+Generate production data for these wells. There should be a relationship between the completion design and production numbers. The production should loosely follow a hyperbolic decline and have some noise.
+After generating the data, perform an analysis to determine optimal completion design parameters to maximize production.
+Create a comprehensive report and render it for visualization.`,
+    `Create a demo for analyzing, reporting, and recommending actions based on smart home electricity and water meters.
+Generate time series sensor data. Look for anomalies in the data (including leak events) and opportunities to increase energy effeciency.
+Create a report with an analysis of the data, with recommendations for how to optimize resources usage, including financial metrics.`,    
     `저는 풍력 발전소 단지를 관리하고 있으며, 운영비용을 최소화하면서 에너지 생산량을 극대화하고 싶습니다. 
 이번 분기 우리 단지의 성과를 확인해보겠습니다. 각 풍력 발전소의 실제 생산량과 예측 생산량을 비교해주세요. 
 필요한 시계열 데이터를 생성하고 각 풍력 발전소의 성과를 시각화할 수 있는 대시보드를 렌더링해주세요`,
@@ -15,19 +30,4 @@ export const defaultPrompts = [
     `전기 및 수도 스마트 홈 미터를 기반으로 분석, 보고, 조치 권장사항을 제공하는 데모를 만들어주세요. 
 시계열 센서 데이터를 생성해주세요. 데이터에서 이상 징후(누수 이벤트 포함)와 에너지 효율성을 높일 수 있는 기회를 찾아주세요. 
 재정적 지표를 포함하여 자원 사용을 최적화하는 방법에 대한 권장사항과 함께 데이터 분석 보고서를 작성해주세요.`,
-//     `I manage a fleet of wind farms and want to maximize energy production while minimizing operational expense. 
-// Let me check our fleet performance for this quarter. Compare the actual production to the forecasted production for each wind farm.
-// Generate the necessary time series data and render a dashboard to visualize the performance of each wind farm.`,
-//     `Create a demo to optimize the maintenance schedule for a fleet of wellsite compressors in the San Juan basin.
-// Generate non-optimized data with historic maintenance events, compressor failures, and time series compressor data.
-// Analyze the data to find an optimized maintenance plan and estimate the cost savings.
-// Create a comprehensive report and render it for visualization.`,
-//     `I compare completion designs and oil production data for an upstream oil company.
-// Generate 10,000 well fracturing completion designs (well spacing, lateral length, perforation cluster spacing, pumped water volumes, pumped proppand sand lbs, number of frac'ing stages)
-// Generate production data for these wells. There should be a relationship between the completion design and production numbers. The production should loosely follow a hyperbolic decline and have some noise.
-// After generating the data, perform an analysis to determine optimal completion design parameters to maximize production.
-// Create a comprehensive report and render it for visualization.`,
-//     `Create a demo for analyzing, reporting, and recommending actions based on smart home electricity and water meters.
-// Generate time series sensor data. Look for anomalies in the data (including leak events) and opportunities to increase energy effeciency.
-// Create a report with an analysis of the data, with recommendations for how to optimize resources usage, including financial metrics.`,
 ]
