@@ -178,8 +178,8 @@ Create intermediate files to store your planned actions, thoughts and work. Use 
 Store them in the 'intermediate' directory. 
 After you complete a planned step, record the results in the file.
 That is, record the completion status each time a planned action is completed. 
-For example, the initial status of an actioned plan should be '[ ]', when in progress it should be '[InProgress]', and when
-completed it should be '[Done]' - record the status while proceeding with the work.
+For example, the initial status of an actioned plan should be '[ ]', and when
+completed it should be '[O]' - record the status while proceeding with the work.
 
 When ingesting data:
 - When quering data, first 
