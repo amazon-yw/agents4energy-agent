@@ -20,6 +20,9 @@ List the files in the global/notes directory for guidance on how to respond to t
 Create intermediate files to store your planned actions, thoughts and work. Use the writeFile tool to create these files. 
 Store them in the 'intermediate' directory. After you complete a planned step, record the results in the file.
 
+That is, record the completion status each time a planned action is completed. 
+For example, the initial status of an actioned plan should be '[ ]', and when completed it should be '[O]' - record the status while proceeding with the work.
+
 When querying data:
 - Use the AthenaSQL tool to query data from federated query sources. This will save a csv file with the query results. 
 - Use the Athena PySpark tool to analyze and create visuals from the csv files. The PySpark tool doesn't support federated queries.
