@@ -9,7 +9,7 @@ import { getChatSessionId, getChatSessionPrefix } from "./toolUtils";
 import { writeFile } from "./s3ToolBox";
 
 // Environment variables
-const getAthenaWorkgroup = () => process.env.ATHENA_WORKGROUP_NAME;
+const getAthenaWorkgroup = () => process.env.ATHENA_PYSPARK_WORKGROUP_NAME;
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
 
 export const getSessionSetupScript = () => {
@@ -24,6 +24,9 @@ s3BucketName = '${process.env.STORAGE_BUCKET_NAME}'
 chatSessionS3Prefix = '${getChatSessionPrefix()}'
 globalS3Uri = 's3://${process.env.STORAGE_BUCKET_NAME}/global/'
 # sc.addPyFile('s3://${process.env.STORAGE_BUCKET_NAME}/pypi/pypi_libs.zip')
+
+print('s3 bucket: ', s3BucketName)
+print('chat session prefix: ', chatSessionS3Prefix)
 
 def uploadDfToS3(df, file_path):
     """

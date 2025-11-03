@@ -2,6 +2,7 @@
 
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
+import { getChatSessionPrefix } from "./toolUtils";
 
 const renderAssetToolSchema = z.object({
     filePath: z.string().describe("Path to the asset file to be rendered"),
@@ -13,6 +14,8 @@ export const renderAssetTool = tool(
     async (renderAssetToolArgs) => {
         return {
             ...renderAssetToolArgs,
+            s3Key: `${renderAssetToolArgs.filePath.startsWith('global/') ? '' : getChatSessionPrefix()}${renderAssetToolArgs.filePath}`,
+            s3Bucket: process.env.STORAGE_BUCKET_NAME,
             renderType: 'asset' // Indicates to frontend this is an asset to be rendered
         };
     },

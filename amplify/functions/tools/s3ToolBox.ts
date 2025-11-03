@@ -1,17 +1,14 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import * as path from "path";
-import { S3Client, PutObjectCommand, ListObjectsV2Command, GetObjectCommand, ListObjectsV2CommandInput } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage"
 import { ChatBedrockConverse } from "@langchain/aws";
 import { getConfiguredAmplifyClient } from '../../../utils/amplifyUtils';
 import { publishResponseStreamChunk } from "../graphql/mutations";
 import { getChatSessionId, getChatSessionPrefix } from "./toolUtils";
 import { validate } from 'jsonschema';
-import { stringifyLimitStringLength } from "../../../utils/langChainUtils";
 import { BaseMessage, AIMessage, HumanMessage } from "@langchain/core/messages";
-import { match } from "assert";
-// import { stringifyLimitStringLength } from "../../../utils/stringUtils";
 
 // Schema for listing files
 const listFilesSchema = z.object({
@@ -231,7 +228,7 @@ interface S3ReadResult {
 }
 
 export async function readS3Object(props: { key: string, maxBytes: number, startAtByte: number }): Promise<S3ReadResult> {
-    const { key, maxBytes = 2048, startAtByte = 0 } = props;
+    const { key, maxBytes = 8192, startAtByte = 0 } = props;
     const s3Client = getS3Client();
     const bucketName = getBucketName();
 
@@ -256,6 +253,7 @@ export async function readS3Object(props: { key: string, maxBytes: number, start
             // Check if content was truncated, accounting for startAtByte
             const contentLength = parseInt(response.ContentRange?.split('/')[1] || '0', 10);
             const wasTruncated = maxBytes > 0 && (contentLength - startAtByte) > maxBytes;
+            const endByte = startAtByte + content.length
 
             return {
                 content,
@@ -263,7 +261,7 @@ export async function readS3Object(props: { key: string, maxBytes: number, start
                 totalBytes: contentLength,
                 bytesRead: content.length,
                 truncationMessage: wasTruncated ?
-                    `\n[...File truncated. Showing bytes ${startAtByte} to ${startAtByte + content.length} of ${contentLength} total bytes...]` :
+                    `\n[...File truncated. Showing bytes ${startAtByte} to ${endByte} of ${contentLength} total bytes...]\n Call this tool again with startAtByte=${endByte} to read more of the file.` :
                     undefined
             };
         } else {
@@ -402,7 +400,7 @@ export const listFiles = tool(
 // Tool to read a file from S3
 export const readFile = tool(
     async ({ filename, startAtByte = 0 }) => {
-        const maxBytes = 1024;
+        const maxBytes = 8192;
         try {
             // Normalize the path to prevent path traversal attacks
             const targetPath = path.normalize(filename);
@@ -465,12 +463,12 @@ export const updateFile = tool(
                 return JSON.stringify({ error: "Invalid file path. Cannot update files outside project root directory." });
             }
 
-            // Prevent updating files with global/ prefix
-            if (targetPath.startsWith("global/")) {
-                return JSON.stringify({ error: "Cannot update files in the global directory. Global files are read-only." });
+            // Prevent updating files with global/ prefix, except for global/notes
+            if (targetPath.startsWith("global/") && !targetPath.startsWith("global/notes/")) {
+                return JSON.stringify({ error: "Cannot update files in the global directory. Global files are read-only. Exception: global/notes/ is writable." });
             }
 
-            const prefix = getChatSessionPrefix();
+            const prefix = getS3KeyPrefix(targetPath);
             const s3Key = path.posix.join(prefix, targetPath);
 
             // Check if file exists and get content if it does
@@ -633,13 +631,15 @@ export const updateFile = tool(
 
 // Helper function to process document links
 async function processDocumentLinks(content: string, chatSessionId: string): Promise<string> {
+
+    const originBasePath = process.env.ORIGIN_BASE_PATH || ""
     // // Get the origin from toolUtils
     // const origin = getOrigin() || '';
 
     // Function to process a path and return the full URL
     const getFullUrl = (filePath: string) => {
         // Only process relative paths that don't start with http/https/. If the path starts with /file/ it's already been processed.
-        if (filePath.startsWith('/file/') || filePath.startsWith('http://') || filePath.startsWith('https://')) {
+        if (filePath.startsWith(`${originBasePath}/file/`) || filePath.startsWith('http://') || filePath.startsWith('https://')) {
             return filePath;
         }
 
@@ -651,16 +651,16 @@ async function processDocumentLinks(content: string, chatSessionId: string): Pro
 
         // Handle global files differently
         if (filePath.startsWith('global/')) {
-            return `/file/${filePath}`;
+            return `${originBasePath}/file/${filePath}`;
         }
         
         // If the path starts with preview, assume it's a formated link to the preview page as returned by the textToTable tool.
-        if (filePath.startsWith('/preview')){
+        if (filePath.startsWith(`${originBasePath}/preview`)){
             return filePath
         }
 
         // Construct the full asset path for session-specific files
-        return `/file/chatSessionArtifacts/sessionId=${chatSessionId}/${filePath}`;
+        return `${originBasePath}/file/chatSessionArtifacts/sessionId=${chatSessionId}/${filePath}`;
     };
 
     // Regular expression to match href="path/to/file" patterns
@@ -694,12 +694,12 @@ export const writeFile = tool(
                 return JSON.stringify({ error: "Invalid file path. Cannot write files outside project root directory." });
             }
 
-            // Prevent writing files with global/ prefix
-            if (targetPath.startsWith("global/")) {
-                return JSON.stringify({ error: "Cannot write files to the global directory. Global files are read-only." });
+            // Prevent writing files with global/ prefix, except for global/notes
+            if (targetPath.startsWith("global/") && !targetPath.startsWith("global/notes/")) {
+                return JSON.stringify({ error: "Cannot write files to the global directory. Global files are read-only. Exception: global/notes/ is writable." });
             }
 
-            const prefix = getChatSessionPrefix();
+            const prefix = getS3KeyPrefix(targetPath);
             const s3Key = path.posix.join(prefix, targetPath);
 
             // Create parent "directory" keys if needed
@@ -756,7 +756,9 @@ export const writeFile = tool(
             return JSON.stringify({
                 success: true,
                 message: `File ${filename} written successfully to S3`,
-                targetPath: targetPath
+                targetPath: targetPath,
+                s3Key: s3Key,
+                s3Bucket: getBucketName()
             });
         } catch (error: any) {
             return JSON.stringify({ error: `Error writing file: ${error.message}` });

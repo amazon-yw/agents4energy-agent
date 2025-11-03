@@ -33,103 +33,17 @@ describe('AWS MCP Tools Integration Tests', function () {
     region = outputs.auth.aws_region;
   });
 
-  it('should successfully list available tools', function (done) {
-    const url = new URL(lambdaUrl);
-
-    const bodyData = JSON.stringify({
-      jsonrpc: "2.0",
-      method: "tools/list",
-      // method: "prompts/list",
-      id: 1
-    });
-
-    const opts: aws4.Request = {
-      host: url.hostname,
-      path: url.pathname,
-      method: 'POST',
-      service: 'lambda',
-      region,
-      headers: {
-        'content-type': 'application/json',
-        'accept': 'application/json',
-        'content-length': Buffer.byteLength(bodyData),
-        'jsonrpc': '2.0'
-      },
-      body: bodyData
-    };
-
-    // Sign the request with AWS credentials
-    aws4.sign(opts, {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      sessionToken: process.env.AWS_SESSION_TOKEN
-    });
-
-    console.log('Full list tools request: ', opts)
-
-    // Make the HTTPS request
-    const req = https.request(opts, (res) => {
-      let data = '';
-
-      // Check status code
-      expect(res.statusCode).to.be.oneOf([200, 201]);
-
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      res.on('end', () => {
-        try {
-          // console.log('List Tools response: ', data)
-
-          const response = JSON.parse(data);
-
-          console.log('List Tools response: ', JSON.stringify(response, null, 2))
-
-          // Verify response structure
-          expect(response).to.have.property('jsonrpc', '2.0');
-          expect(response).to.have.property('id', 1);
-          expect(response).to.have.property('result');
-
-          const tools = response.result.tools;
-          expect(tools).to.be.an('array');
-
-          done();
-        } catch (error) {
-          done(error);
-        }
-      });
-    });
-
-    // Add timeout to prevent hanging indefinitely
-    req.setTimeout(10000, () => {
-      done(new Error('Request timed out after 10 seconds'));
-      req.destroy();
-    });
-
-    req.on('error', (err) => {
-      done(err);
-    });
-
-    // Send the request
-    req.end(bodyData);
-  });
-
   it('should successfully execute the add tool', function (done) {
     const url = new URL(lambdaUrl);
-
-    // const a = 5;
-    // const b = 7;
-    // const expectedResult = a + b;
 
     const bodyData = JSON.stringify({
       jsonrpc: "2.0",
       id: 2,
       method: "tools/call",
       params: {
-        name: "invokeReactAgent",
+        name: "athenaSqlTool",
         arguments: {
-          prompt: "What is 1+1?"
+          sqlQuery: "SHOW DATABASES"
         }
       }
     });

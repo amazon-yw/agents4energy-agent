@@ -28,6 +28,12 @@ export const mcpAgentInvoker = defineFunction({
   timeoutSeconds: 900,
 });
 
+export const mcpServerTestFunction = defineFunction({
+  name: 'mcpServerTest',
+  entry: '../functions/mcpServerTest/handler.ts',
+  timeoutSeconds: 900,
+});
+
 export const schema = a.schema({
   Project: a.model({
     name: a.string(),
@@ -53,17 +59,32 @@ export const schema = a.schema({
   })
     .authorization((allow) => [allow.owner(), allow.authenticated(), allow.guest()]),
 
-  WorkStep: a.customType({
+  HeaderEntry: a.customType({
+    key: a.string(),
+    value: a.string(),
+  }),
+
+  Tool: a.customType({
     name: a.string(),
     description: a.string(),
-    status: a.enum(["pending", "in_progress", "completed", "failed"]),
-    result: a.string()
+    schema: a.string()
   }),
+
+  McpServer: a.model({
+    name: a.string().required().authorization((allow) => [allow.owner(), allow.authenticated()]),
+    url: a.string().authorization(allow => [allow.owner()]),
+    headers: a.ref("HeaderEntry").array().authorization(allow => [allow.owner()]),
+    signRequestsWithAwsCreds: a.boolean().default(false),
+    enabled: a.boolean().default(true),
+    tools: a.ref("Tool").array()
+  }).authorization((allow) => [
+    allow.owner(),
+    allow.authenticated().to(["read", "update"])
+  ]),
 
   ChatSession: a.model({
     name: a.string(),
     messages: a.hasMany("ChatMessage", "chatSessionId"),
-    workSteps: a.ref("WorkStep").array(),
   })
     .authorization((allow) => [allow.owner(), allow.authenticated(), allow.guest()]),
 
@@ -94,6 +115,12 @@ export const schema = a.schema({
       index("chatSessionIdUnderscoreFieldName").sortKeys(["createdAt"])
     ])
     .authorization((allow) => [allow.owner(), allow.authenticated(), allow.guest()]),
+  
+  Settings: a.model({
+    name: a.string(),
+    value: a.string(),
+  })
+    .authorization((allow) => [allow.owner(), allow.authenticated()]),
 
   //These assets enable token level streaming from the model
   ResponseStreamChunk: a.customType({
@@ -126,8 +153,8 @@ export const schema = a.schema({
     .authorization(allow => [allow.authenticated()]),
 
   invokeReActAgent: a.query()
-    .arguments({ 
-      chatSessionId: a.id().required(), 
+    .arguments({
+      chatSessionId: a.id().required(),
       foundationModelId: a.string(), // Optionally, chose the foundation model to use for the agent
       respondToAgent: a.boolean(), //When an agent is invoked by another agent, the agent will create a tool response message with it's output
       userId: a.string(), //When invoking the agent programatically, specify which user should be the owner of the message
@@ -135,9 +162,30 @@ export const schema = a.schema({
     })
     .handler(a.handler.function(reActAgentFunction).async())
     .authorization((allow) => [allow.authenticated()]),
+
+  testMcpServer: a.query()
+    .arguments({
+      mcpServerId: a.string().required()
+    })
+    .returns(
+      a.customType({
+        tools: a.ref("Tool").array(),
+        // tools: a.customType({
+        //   name: a.string(),
+        //   description: a.string(),
+        //   schema: a.string()
+        // }).array(),
+        error: a.string()
+      })
+    )
+    .handler(a.handler.function(mcpServerTestFunction))
+    .authorization((allow) => [allow.authenticated()]),
+
 })
   .authorization((allow) => [
-    allow.resource(reActAgentFunction)
+    allow.resource(reActAgentFunction),
+    allow.resource(mcpServerTestFunction),
+    allow.resource(mcpAgentInvoker)
   ]);
 
 export type Schema = ClientSchema<typeof schema>;

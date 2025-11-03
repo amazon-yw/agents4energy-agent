@@ -27,7 +27,6 @@ export type ChatSession = {
   name?: string | null,
   owner?: string | null,
   updatedAt: string,
-  workSteps?:  Array<WorkStep | null > | null,
 };
 
 export type ModelChatMessageConnection = {
@@ -35,22 +34,6 @@ export type ModelChatMessageConnection = {
   items:  Array<ChatMessage | null >,
   nextToken?: string | null,
 };
-
-export type WorkStep = {
-  __typename: "WorkStep",
-  description?: string | null,
-  name?: string | null,
-  result?: string | null,
-  status?: WorkStepStatus | null,
-};
-
-export enum WorkStepStatus {
-  completed = "completed",
-  failed = "failed",
-  in_progress = "in_progress",
-  pending = "pending",
-}
-
 
 export type ChatMessageContent = {
   __typename: "ChatMessageContent",
@@ -78,6 +61,33 @@ export type ResponseStreamChunk = {
   chatSessionId: string,
   chunkText: string,
   index: number,
+};
+
+export type McpServer = {
+  __typename: "McpServer",
+  createdAt: string,
+  enabled?: boolean | null,
+  headers?:  Array<HeaderEntry | null > | null,
+  id: string,
+  name: string,
+  owner?: string | null,
+  signRequestsWithAwsCreds?: boolean | null,
+  tools?:  Array<Tool | null > | null,
+  updatedAt: string,
+  url?: string | null,
+};
+
+export type HeaderEntry = {
+  __typename: "HeaderEntry",
+  key?: string | null,
+  value?: string | null,
+};
+
+export type Tool = {
+  __typename: "Tool",
+  description?: string | null,
+  name?: string | null,
+  schema?: string | null,
 };
 
 export type Project = {
@@ -125,6 +135,16 @@ export enum ProjectStatus {
   scheduled = "scheduled",
 }
 
+
+export type Settings = {
+  __typename: "Settings",
+  createdAt: string,
+  id: string,
+  name?: string | null,
+  owner?: string | null,
+  updatedAt: string,
+  value?: string | null,
+};
 
 export type EventInvocationResponse = {
   __typename: "EventInvocationResponse",
@@ -265,6 +285,26 @@ export type ModelDummyModelToAddIamDirectiveConnection = {
   nextToken?: string | null,
 };
 
+export type ModelMcpServerFilterInput = {
+  and?: Array< ModelMcpServerFilterInput | null > | null,
+  createdAt?: ModelStringInput | null,
+  enabled?: ModelBooleanInput | null,
+  id?: ModelIDInput | null,
+  name?: ModelStringInput | null,
+  not?: ModelMcpServerFilterInput | null,
+  or?: Array< ModelMcpServerFilterInput | null > | null,
+  owner?: ModelStringInput | null,
+  signRequestsWithAwsCreds?: ModelBooleanInput | null,
+  updatedAt?: ModelStringInput | null,
+  url?: ModelStringInput | null,
+};
+
+export type ModelMcpServerConnection = {
+  __typename: "ModelMcpServerConnection",
+  items:  Array<McpServer | null >,
+  nextToken?: string | null,
+};
+
 export type ModelProjectFilterInput = {
   and?: Array< ModelProjectFilterInput | null > | null,
   createdAt?: ModelStringInput | null,
@@ -292,6 +332,30 @@ export type ModelProjectConnection = {
   __typename: "ModelProjectConnection",
   items:  Array<Project | null >,
   nextToken?: string | null,
+};
+
+export type ModelSettingsFilterInput = {
+  and?: Array< ModelSettingsFilterInput | null > | null,
+  createdAt?: ModelStringInput | null,
+  id?: ModelIDInput | null,
+  name?: ModelStringInput | null,
+  not?: ModelSettingsFilterInput | null,
+  or?: Array< ModelSettingsFilterInput | null > | null,
+  owner?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  value?: ModelStringInput | null,
+};
+
+export type ModelSettingsConnection = {
+  __typename: "ModelSettingsConnection",
+  items:  Array<Settings | null >,
+  nextToken?: string | null,
+};
+
+export type TestMcpServerReturnType = {
+  __typename: "TestMcpServerReturnType",
+  error?: string | null,
+  tools?:  Array<Tool | null > | null,
 };
 
 export type ModelChatMessageConditionInput = {
@@ -341,14 +405,6 @@ export type ModelChatSessionConditionInput = {
 export type CreateChatSessionInput = {
   id?: string | null,
   name?: string | null,
-  workSteps?: Array< WorkStepInput | null > | null,
-};
-
-export type WorkStepInput = {
-  description?: string | null,
-  name?: string | null,
-  result?: string | null,
-  status?: WorkStepStatus | null,
 };
 
 export type ModelDummyModelToAddIamDirectiveConditionInput = {
@@ -369,6 +425,40 @@ export type ResponseStreamChunkInput = {
   chatSessionId: string,
   chunkText: string,
   index: number,
+};
+
+export type ModelMcpServerConditionInput = {
+  and?: Array< ModelMcpServerConditionInput | null > | null,
+  createdAt?: ModelStringInput | null,
+  enabled?: ModelBooleanInput | null,
+  name?: ModelStringInput | null,
+  not?: ModelMcpServerConditionInput | null,
+  or?: Array< ModelMcpServerConditionInput | null > | null,
+  owner?: ModelStringInput | null,
+  signRequestsWithAwsCreds?: ModelBooleanInput | null,
+  updatedAt?: ModelStringInput | null,
+  url?: ModelStringInput | null,
+};
+
+export type CreateMcpServerInput = {
+  enabled?: boolean | null,
+  headers?: Array< HeaderEntryInput | null > | null,
+  id?: string | null,
+  name: string,
+  signRequestsWithAwsCreds?: boolean | null,
+  tools?: Array< ToolInput | null > | null,
+  url?: string | null,
+};
+
+export type HeaderEntryInput = {
+  key?: string | null,
+  value?: string | null,
+};
+
+export type ToolInput = {
+  description?: string | null,
+  name?: string | null,
+  schema?: string | null,
 };
 
 export type ModelProjectConditionInput = {
@@ -416,6 +506,23 @@ export type ProjectNextActionInput = {
   buttonTextBeforeClick?: string | null,
 };
 
+export type ModelSettingsConditionInput = {
+  and?: Array< ModelSettingsConditionInput | null > | null,
+  createdAt?: ModelStringInput | null,
+  name?: ModelStringInput | null,
+  not?: ModelSettingsConditionInput | null,
+  or?: Array< ModelSettingsConditionInput | null > | null,
+  owner?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  value?: ModelStringInput | null,
+};
+
+export type CreateSettingsInput = {
+  id?: string | null,
+  name?: string | null,
+  value?: string | null,
+};
+
 export type DeleteChatMessageInput = {
   id: string,
 };
@@ -428,7 +535,15 @@ export type DeleteDummyModelToAddIamDirectiveInput = {
   id: string,
 };
 
+export type DeleteMcpServerInput = {
+  id: string,
+};
+
 export type DeleteProjectInput = {
+  id: string,
+};
+
+export type DeleteSettingsInput = {
   id: string,
 };
 
@@ -449,12 +564,21 @@ export type UpdateChatMessageInput = {
 export type UpdateChatSessionInput = {
   id: string,
   name?: string | null,
-  workSteps?: Array< WorkStepInput | null > | null,
 };
 
 export type UpdateDummyModelToAddIamDirectiveInput = {
   id: string,
   responseStreamChunk?: ResponseStreamChunkInput | null,
+};
+
+export type UpdateMcpServerInput = {
+  enabled?: boolean | null,
+  headers?: Array< HeaderEntryInput | null > | null,
+  id: string,
+  name?: string | null,
+  signRequestsWithAwsCreds?: boolean | null,
+  tools?: Array< ToolInput | null > | null,
+  url?: string | null,
 };
 
 export type UpdateProjectInput = {
@@ -469,6 +593,12 @@ export type UpdateProjectInput = {
   result?: string | null,
   sourceChatSessionId?: string | null,
   status?: ProjectStatus | null,
+};
+
+export type UpdateSettingsInput = {
+  id: string,
+  name?: string | null,
+  value?: string | null,
 };
 
 export type ModelSubscriptionChatMessageFilterInput = {
@@ -541,6 +671,19 @@ export type ModelSubscriptionDummyModelToAddIamDirectiveFilterInput = {
   updatedAt?: ModelSubscriptionStringInput | null,
 };
 
+export type ModelSubscriptionMcpServerFilterInput = {
+  and?: Array< ModelSubscriptionMcpServerFilterInput | null > | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  enabled?: ModelSubscriptionBooleanInput | null,
+  id?: ModelSubscriptionIDInput | null,
+  name?: ModelSubscriptionStringInput | null,
+  or?: Array< ModelSubscriptionMcpServerFilterInput | null > | null,
+  owner?: ModelStringInput | null,
+  signRequestsWithAwsCreds?: ModelSubscriptionBooleanInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+  url?: ModelSubscriptionStringInput | null,
+};
+
 export type ModelSubscriptionProjectFilterInput = {
   and?: Array< ModelSubscriptionProjectFilterInput | null > | null,
   createdAt?: ModelSubscriptionStringInput | null,
@@ -556,6 +699,17 @@ export type ModelSubscriptionProjectFilterInput = {
   sourceChatSessionId?: ModelSubscriptionIDInput | null,
   status?: ModelSubscriptionStringInput | null,
   updatedAt?: ModelSubscriptionStringInput | null,
+};
+
+export type ModelSubscriptionSettingsFilterInput = {
+  and?: Array< ModelSubscriptionSettingsFilterInput | null > | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  id?: ModelSubscriptionIDInput | null,
+  name?: ModelSubscriptionStringInput | null,
+  or?: Array< ModelSubscriptionSettingsFilterInput | null > | null,
+  owner?: ModelStringInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+  value?: ModelSubscriptionStringInput | null,
 };
 
 export type GetChatMessageQueryVariables = {
@@ -607,13 +761,6 @@ export type GetChatSessionQuery = {
     name?: string | null,
     owner?: string | null,
     updatedAt: string,
-    workSteps?:  Array< {
-      __typename: "WorkStep",
-      description?: string | null,
-      name?: string | null,
-      result?: string | null,
-      status?: WorkStepStatus | null,
-    } | null > | null,
   } | null,
 };
 
@@ -634,6 +781,35 @@ export type GetDummyModelToAddIamDirectiveQuery = {
       index: number,
     } | null,
     updatedAt: string,
+  } | null,
+};
+
+export type GetMcpServerQueryVariables = {
+  id: string,
+};
+
+export type GetMcpServerQuery = {
+  getMcpServer?:  {
+    __typename: "McpServer",
+    createdAt: string,
+    enabled?: boolean | null,
+    headers?:  Array< {
+      __typename: "HeaderEntry",
+      key?: string | null,
+      value?: string | null,
+    } | null > | null,
+    id: string,
+    name: string,
+    owner?: string | null,
+    signRequestsWithAwsCreds?: boolean | null,
+    tools?:  Array< {
+      __typename: "Tool",
+      description?: string | null,
+      name?: string | null,
+      schema?: string | null,
+    } | null > | null,
+    updatedAt: string,
+    url?: string | null,
   } | null,
 };
 
@@ -673,10 +849,25 @@ export type GetProjectQuery = {
   } | null,
 };
 
+export type GetSettingsQueryVariables = {
+  id: string,
+};
+
+export type GetSettingsQuery = {
+  getSettings?:  {
+    __typename: "Settings",
+    createdAt: string,
+    id: string,
+    name?: string | null,
+    owner?: string | null,
+    updatedAt: string,
+    value?: string | null,
+  } | null,
+};
+
 export type InvokeReActAgentQueryVariables = {
   chatSessionId: string,
   foundationModelId?: string | null,
-  origin?: string | null,
   respondToAgent?: boolean | null,
   userId?: string | null,
 };
@@ -816,6 +1007,30 @@ export type ListDummyModelToAddIamDirectivesQuery = {
   } | null,
 };
 
+export type ListMcpServersQueryVariables = {
+  filter?: ModelMcpServerFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type ListMcpServersQuery = {
+  listMcpServers?:  {
+    __typename: "ModelMcpServerConnection",
+    items:  Array< {
+      __typename: "McpServer",
+      createdAt: string,
+      enabled?: boolean | null,
+      id: string,
+      name: string,
+      owner?: string | null,
+      signRequestsWithAwsCreds?: boolean | null,
+      updatedAt: string,
+      url?: string | null,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
 export type ListProjectsQueryVariables = {
   filter?: ModelProjectFilterInput | null,
   limit?: number | null,
@@ -841,6 +1056,45 @@ export type ListProjectsQuery = {
       updatedAt: string,
     } | null >,
     nextToken?: string | null,
+  } | null,
+};
+
+export type ListSettingsQueryVariables = {
+  filter?: ModelSettingsFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type ListSettingsQuery = {
+  listSettings?:  {
+    __typename: "ModelSettingsConnection",
+    items:  Array< {
+      __typename: "Settings",
+      createdAt: string,
+      id: string,
+      name?: string | null,
+      owner?: string | null,
+      updatedAt: string,
+      value?: string | null,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type TestMcpServerQueryVariables = {
+  mcpServerId: string,
+};
+
+export type TestMcpServerQuery = {
+  testMcpServer?:  {
+    __typename: "TestMcpServerReturnType",
+    error?: string | null,
+    tools?:  Array< {
+      __typename: "Tool",
+      description?: string | null,
+      name?: string | null,
+      schema?: string | null,
+    } | null > | null,
   } | null,
 };
 
@@ -895,13 +1149,6 @@ export type CreateChatSessionMutation = {
     name?: string | null,
     owner?: string | null,
     updatedAt: string,
-    workSteps?:  Array< {
-      __typename: "WorkStep",
-      description?: string | null,
-      name?: string | null,
-      result?: string | null,
-      status?: WorkStepStatus | null,
-    } | null > | null,
   } | null,
 };
 
@@ -923,6 +1170,36 @@ export type CreateDummyModelToAddIamDirectiveMutation = {
       index: number,
     } | null,
     updatedAt: string,
+  } | null,
+};
+
+export type CreateMcpServerMutationVariables = {
+  condition?: ModelMcpServerConditionInput | null,
+  input: CreateMcpServerInput,
+};
+
+export type CreateMcpServerMutation = {
+  createMcpServer?:  {
+    __typename: "McpServer",
+    createdAt: string,
+    enabled?: boolean | null,
+    headers?:  Array< {
+      __typename: "HeaderEntry",
+      key?: string | null,
+      value?: string | null,
+    } | null > | null,
+    id: string,
+    name: string,
+    owner?: string | null,
+    signRequestsWithAwsCreds?: boolean | null,
+    tools?:  Array< {
+      __typename: "Tool",
+      description?: string | null,
+      name?: string | null,
+      schema?: string | null,
+    } | null > | null,
+    updatedAt: string,
+    url?: string | null,
   } | null,
 };
 
@@ -960,6 +1237,23 @@ export type CreateProjectMutation = {
     sourceChatSessionId?: string | null,
     status?: ProjectStatus | null,
     updatedAt: string,
+  } | null,
+};
+
+export type CreateSettingsMutationVariables = {
+  condition?: ModelSettingsConditionInput | null,
+  input: CreateSettingsInput,
+};
+
+export type CreateSettingsMutation = {
+  createSettings?:  {
+    __typename: "Settings",
+    createdAt: string,
+    id: string,
+    name?: string | null,
+    owner?: string | null,
+    updatedAt: string,
+    value?: string | null,
   } | null,
 };
 
@@ -1014,13 +1308,6 @@ export type DeleteChatSessionMutation = {
     name?: string | null,
     owner?: string | null,
     updatedAt: string,
-    workSteps?:  Array< {
-      __typename: "WorkStep",
-      description?: string | null,
-      name?: string | null,
-      result?: string | null,
-      status?: WorkStepStatus | null,
-    } | null > | null,
   } | null,
 };
 
@@ -1042,6 +1329,36 @@ export type DeleteDummyModelToAddIamDirectiveMutation = {
       index: number,
     } | null,
     updatedAt: string,
+  } | null,
+};
+
+export type DeleteMcpServerMutationVariables = {
+  condition?: ModelMcpServerConditionInput | null,
+  input: DeleteMcpServerInput,
+};
+
+export type DeleteMcpServerMutation = {
+  deleteMcpServer?:  {
+    __typename: "McpServer",
+    createdAt: string,
+    enabled?: boolean | null,
+    headers?:  Array< {
+      __typename: "HeaderEntry",
+      key?: string | null,
+      value?: string | null,
+    } | null > | null,
+    id: string,
+    name: string,
+    owner?: string | null,
+    signRequestsWithAwsCreds?: boolean | null,
+    tools?:  Array< {
+      __typename: "Tool",
+      description?: string | null,
+      name?: string | null,
+      schema?: string | null,
+    } | null > | null,
+    updatedAt: string,
+    url?: string | null,
   } | null,
 };
 
@@ -1079,6 +1396,23 @@ export type DeleteProjectMutation = {
     sourceChatSessionId?: string | null,
     status?: ProjectStatus | null,
     updatedAt: string,
+  } | null,
+};
+
+export type DeleteSettingsMutationVariables = {
+  condition?: ModelSettingsConditionInput | null,
+  input: DeleteSettingsInput,
+};
+
+export type DeleteSettingsMutation = {
+  deleteSettings?:  {
+    __typename: "Settings",
+    createdAt: string,
+    id: string,
+    name?: string | null,
+    owner?: string | null,
+    updatedAt: string,
+    value?: string | null,
   } | null,
 };
 
@@ -1148,13 +1482,6 @@ export type UpdateChatSessionMutation = {
     name?: string | null,
     owner?: string | null,
     updatedAt: string,
-    workSteps?:  Array< {
-      __typename: "WorkStep",
-      description?: string | null,
-      name?: string | null,
-      result?: string | null,
-      status?: WorkStepStatus | null,
-    } | null > | null,
   } | null,
 };
 
@@ -1176,6 +1503,36 @@ export type UpdateDummyModelToAddIamDirectiveMutation = {
       index: number,
     } | null,
     updatedAt: string,
+  } | null,
+};
+
+export type UpdateMcpServerMutationVariables = {
+  condition?: ModelMcpServerConditionInput | null,
+  input: UpdateMcpServerInput,
+};
+
+export type UpdateMcpServerMutation = {
+  updateMcpServer?:  {
+    __typename: "McpServer",
+    createdAt: string,
+    enabled?: boolean | null,
+    headers?:  Array< {
+      __typename: "HeaderEntry",
+      key?: string | null,
+      value?: string | null,
+    } | null > | null,
+    id: string,
+    name: string,
+    owner?: string | null,
+    signRequestsWithAwsCreds?: boolean | null,
+    tools?:  Array< {
+      __typename: "Tool",
+      description?: string | null,
+      name?: string | null,
+      schema?: string | null,
+    } | null > | null,
+    updatedAt: string,
+    url?: string | null,
   } | null,
 };
 
@@ -1213,6 +1570,23 @@ export type UpdateProjectMutation = {
     sourceChatSessionId?: string | null,
     status?: ProjectStatus | null,
     updatedAt: string,
+  } | null,
+};
+
+export type UpdateSettingsMutationVariables = {
+  condition?: ModelSettingsConditionInput | null,
+  input: UpdateSettingsInput,
+};
+
+export type UpdateSettingsMutation = {
+  updateSettings?:  {
+    __typename: "Settings",
+    createdAt: string,
+    id: string,
+    name?: string | null,
+    owner?: string | null,
+    updatedAt: string,
+    value?: string | null,
   } | null,
 };
 
@@ -1267,13 +1641,6 @@ export type OnCreateChatSessionSubscription = {
     name?: string | null,
     owner?: string | null,
     updatedAt: string,
-    workSteps?:  Array< {
-      __typename: "WorkStep",
-      description?: string | null,
-      name?: string | null,
-      result?: string | null,
-      status?: WorkStepStatus | null,
-    } | null > | null,
   } | null,
 };
 
@@ -1295,6 +1662,36 @@ export type OnCreateDummyModelToAddIamDirectiveSubscription = {
       index: number,
     } | null,
     updatedAt: string,
+  } | null,
+};
+
+export type OnCreateMcpServerSubscriptionVariables = {
+  filter?: ModelSubscriptionMcpServerFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnCreateMcpServerSubscription = {
+  onCreateMcpServer?:  {
+    __typename: "McpServer",
+    createdAt: string,
+    enabled?: boolean | null,
+    headers?:  Array< {
+      __typename: "HeaderEntry",
+      key?: string | null,
+      value?: string | null,
+    } | null > | null,
+    id: string,
+    name: string,
+    owner?: string | null,
+    signRequestsWithAwsCreds?: boolean | null,
+    tools?:  Array< {
+      __typename: "Tool",
+      description?: string | null,
+      name?: string | null,
+      schema?: string | null,
+    } | null > | null,
+    updatedAt: string,
+    url?: string | null,
   } | null,
 };
 
@@ -1332,6 +1729,23 @@ export type OnCreateProjectSubscription = {
     sourceChatSessionId?: string | null,
     status?: ProjectStatus | null,
     updatedAt: string,
+  } | null,
+};
+
+export type OnCreateSettingsSubscriptionVariables = {
+  filter?: ModelSubscriptionSettingsFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnCreateSettingsSubscription = {
+  onCreateSettings?:  {
+    __typename: "Settings",
+    createdAt: string,
+    id: string,
+    name?: string | null,
+    owner?: string | null,
+    updatedAt: string,
+    value?: string | null,
   } | null,
 };
 
@@ -1386,13 +1800,6 @@ export type OnDeleteChatSessionSubscription = {
     name?: string | null,
     owner?: string | null,
     updatedAt: string,
-    workSteps?:  Array< {
-      __typename: "WorkStep",
-      description?: string | null,
-      name?: string | null,
-      result?: string | null,
-      status?: WorkStepStatus | null,
-    } | null > | null,
   } | null,
 };
 
@@ -1414,6 +1821,36 @@ export type OnDeleteDummyModelToAddIamDirectiveSubscription = {
       index: number,
     } | null,
     updatedAt: string,
+  } | null,
+};
+
+export type OnDeleteMcpServerSubscriptionVariables = {
+  filter?: ModelSubscriptionMcpServerFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnDeleteMcpServerSubscription = {
+  onDeleteMcpServer?:  {
+    __typename: "McpServer",
+    createdAt: string,
+    enabled?: boolean | null,
+    headers?:  Array< {
+      __typename: "HeaderEntry",
+      key?: string | null,
+      value?: string | null,
+    } | null > | null,
+    id: string,
+    name: string,
+    owner?: string | null,
+    signRequestsWithAwsCreds?: boolean | null,
+    tools?:  Array< {
+      __typename: "Tool",
+      description?: string | null,
+      name?: string | null,
+      schema?: string | null,
+    } | null > | null,
+    updatedAt: string,
+    url?: string | null,
   } | null,
 };
 
@@ -1451,6 +1888,23 @@ export type OnDeleteProjectSubscription = {
     sourceChatSessionId?: string | null,
     status?: ProjectStatus | null,
     updatedAt: string,
+  } | null,
+};
+
+export type OnDeleteSettingsSubscriptionVariables = {
+  filter?: ModelSubscriptionSettingsFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnDeleteSettingsSubscription = {
+  onDeleteSettings?:  {
+    __typename: "Settings",
+    createdAt: string,
+    id: string,
+    name?: string | null,
+    owner?: string | null,
+    updatedAt: string,
+    value?: string | null,
   } | null,
 };
 
@@ -1505,13 +1959,6 @@ export type OnUpdateChatSessionSubscription = {
     name?: string | null,
     owner?: string | null,
     updatedAt: string,
-    workSteps?:  Array< {
-      __typename: "WorkStep",
-      description?: string | null,
-      name?: string | null,
-      result?: string | null,
-      status?: WorkStepStatus | null,
-    } | null > | null,
   } | null,
 };
 
@@ -1533,6 +1980,36 @@ export type OnUpdateDummyModelToAddIamDirectiveSubscription = {
       index: number,
     } | null,
     updatedAt: string,
+  } | null,
+};
+
+export type OnUpdateMcpServerSubscriptionVariables = {
+  filter?: ModelSubscriptionMcpServerFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnUpdateMcpServerSubscription = {
+  onUpdateMcpServer?:  {
+    __typename: "McpServer",
+    createdAt: string,
+    enabled?: boolean | null,
+    headers?:  Array< {
+      __typename: "HeaderEntry",
+      key?: string | null,
+      value?: string | null,
+    } | null > | null,
+    id: string,
+    name: string,
+    owner?: string | null,
+    signRequestsWithAwsCreds?: boolean | null,
+    tools?:  Array< {
+      __typename: "Tool",
+      description?: string | null,
+      name?: string | null,
+      schema?: string | null,
+    } | null > | null,
+    updatedAt: string,
+    url?: string | null,
   } | null,
 };
 
@@ -1570,6 +2047,23 @@ export type OnUpdateProjectSubscription = {
     sourceChatSessionId?: string | null,
     status?: ProjectStatus | null,
     updatedAt: string,
+  } | null,
+};
+
+export type OnUpdateSettingsSubscriptionVariables = {
+  filter?: ModelSubscriptionSettingsFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnUpdateSettingsSubscription = {
+  onUpdateSettings?:  {
+    __typename: "Settings",
+    createdAt: string,
+    id: string,
+    name?: string | null,
+    owner?: string | null,
+    updatedAt: string,
+    value?: string | null,
   } | null,
 };
 

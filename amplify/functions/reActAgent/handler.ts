@@ -10,6 +10,7 @@ import { Tool, StructuredToolInterface, ToolSchemaBase } from "@langchain/core/t
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
+import { getSettings } from "../graphql/queries"
 import { publishResponseStreamChunk } from "../graphql/mutations";
 
 import { setChatSessionId } from "../tools/toolUtils";
@@ -21,16 +22,21 @@ import { createProjectTool } from "../tools/createProjectTool";
 // import { permeabilityCalculator } from "../tools/customWorkshopTool";
 
 import { Schema } from '../../data/resource';
-
 import { getLangChainChatMessagesStartingWithHumanMessage, getLangChainMessageTextContent, publishMessage, stringifyLimitStringLength } from '../../../utils/langChainUtils';
+import { listMcpServers } from '../../../utils/graphqlStatements'
 import { EventEmitter } from "events";
 
-import { startMcpBridgeServer } from "./awsSignedMcpBridge"
+import { startMcpBridgeServer } from "../../../utils/awsSignedMcpBridge"
 
-const USE_MCP = false;
-const LOCAL_PROXY_PORT = 3020
+const USE_MCP = true;
+// const LOCAL_PROXY_PORT = 3020
 
-let mcpTools: StructuredToolInterface<ToolSchemaBase, any, any>[] = []
+let proxyServerInitilized = false
+let proxyServerPort: number | null
+// let mcpTools: StructuredToolInterface<ToolSchemaBase, any, any>[] = []
+// Each chat session will have a unique set of MCP tools because the chat-session-id header value will be different.
+let mcpTools: Record<string,StructuredToolInterface<ToolSchemaBase, any, any>[]> = {}
+// let systemMessageContent = ''
 
 // Increase the default max listeners to prevent warnings
 EventEmitter.defaultMaxListeners = 10;
@@ -69,19 +75,27 @@ export const handler: Schema["invokeReActAgent"]["functionHandler"] = async (eve
 
         // This function includes validation to prevent "The text field in the ContentBlock object is blank" errors
         // by ensuring no message content is empty when sent to Bedrock
-        const chatSessionMessages = await getLangChainChatMessagesStartingWithHumanMessage(event.arguments.chatSessionId)
-
-        if (chatSessionMessages.length === 0) {
-            console.warn('No messages found in chat session')
-            return
-        }
+        const chatSessionMessages = await getLangChainChatMessagesStartingWithHumanMessage(event.arguments.chatSessionId)        
 
         const agentModel = new ChatBedrockConverse({
             model: process.env.AGENT_MODEL_ID,
             // temperature: 0
         });
 
-        if (mcpTools.length === 0 && USE_MCP) {
+        if (! proxyServerInitilized ){
+            // Start the MCP bridge server with default options
+            const mcpBridgeServer = await startMcpBridgeServer({
+                // port: LOCAL_PROXY_PORT,
+                service: 'lambda'
+            })
+            // Get the port after the server is listening
+            const address = mcpBridgeServer.address()
+            proxyServerPort = typeof address === 'object' && address !== null ? address.port : null
+            console.log('Server is listening on port:', proxyServerPort)
+        }
+
+        if (!(event.arguments.chatSessionId in mcpTools) && USE_MCP) {
+            proxyServerInitilized = true
             await amplifyClient.graphql({
                 query: publishResponseStreamChunk,
                 variables: {
@@ -91,31 +105,61 @@ export const handler: Schema["invokeReActAgent"]["functionHandler"] = async (eve
                 }
             })
 
-            // Start the MCP bridge server with default options
-            startMcpBridgeServer({
-                port: LOCAL_PROXY_PORT,
-                service: 'lambda'
+            //Get the configured mcp servers from the MCP registry
+            const {data: {listMcpServers: {items: mcpServers} } } = await amplifyClient.graphql({
+                query: listMcpServers
             })
 
-            const mcpClient = new MultiServerMCPClient({
-                useStandardContentBlocks: true,
-                prefixToolNameWithServerName: false,
-                // additionalToolNamePrefix: "",
+            console.log({ mcpServers })
 
-                mcpServers: {
-                    a4e: {
-                        url: `http://localhost:${LOCAL_PROXY_PORT}/proxy`,
+            // Build the mcpServers configuration dynamically from enabled servers
+            const mcpServersConfig: Record<string, any> = {}
+            
+            mcpServers
+                .filter(server => server.enabled && server.name && server.url) // Only include enabled servers with valid name and url
+                .forEach(server => {
+                    // Build base headers
+                    const baseHeaders = {
+                        'target-url': server.url,
+                        'accept': 'application/json',
+                        'jsonrpc': '2.0',
+                        'chat-session-id': event.arguments.chatSessionId
+                    }
+
+                    // Add server-specific headers if they exist
+                    const serverHeaders: Record<string, string> = {}
+                    if (server.headers && Array.isArray(server.headers)) {
+                        server.headers.forEach(header => {
+                            if (header && header.key && header.value) {
+                                serverHeaders[header.key] = header.value
+                            }
+                        })
+                    }
+
+                    mcpServersConfig[server.name!] = {
+                        url: `http://localhost:${proxyServerPort}/proxy`,
                         headers: {
-                            'target-url': process.env.MCP_FUNCTION_URL!,
-                            'accept': 'application/json',
-                            'jsonrpc': '2.0',
-                            'chat-session-id': event.arguments.chatSessionId
+                            ...baseHeaders,
+                            ...serverHeaders
                         }
                     }
-                }
-            })
+                })
 
-            mcpTools = await mcpClient.getTools()
+            // Only initialize MCP client and get tools if there are enabled servers
+            if (Object.keys(mcpServersConfig).length > 0) {
+                const mcpClient = new MultiServerMCPClient({
+                    useStandardContentBlocks: true,
+                    prefixToolNameWithServerName: false,
+                    defaultToolTimeout: 5*60*1000,//5 minute default tool timeout
+                    // additionalToolNamePrefix: "",
+
+                    mcpServers: mcpServersConfig
+                })
+
+                mcpTools[event.arguments.chatSessionId] = await mcpClient.getTools()
+            } else {
+                console.log('No enabled MCP servers found, skipping MCP client initialization')
+            }
 
             await amplifyClient.graphql({
                 query: publishResponseStreamChunk,
@@ -127,103 +171,34 @@ export const handler: Schema["invokeReActAgent"]["functionHandler"] = async (eve
             })
         }
 
-        console.log('Mcp Tools: ', mcpTools)
+        console.log('Mcp Tools: ', mcpTools[event.arguments.chatSessionId].map(tool => tool.name))
 
-        const agentTools = USE_MCP ? mcpTools : [
-            new Calculator(),
-            ...s3FileManagementTools,
-            userInputTool,
-            createProjectTool,
-            pysparkTool({
-                additionalToolDescription: `
-                            By default, plots will have a lograthmic y axis and a white backgrount.
-                            `,
-                additionalSetupScript: `
-import plotly.io as pio
-import plotly.graph_objects as go
-
-# Create a custom layout
-custom_layout = go.Layout(
-    paper_bgcolor='white',
-    plot_bgcolor='white',
-    xaxis=dict(showgrid=False),
-    yaxis=dict(
-        showgrid=True,
-        gridcolor='lightgray',
-        # type='log'  # <-- Set y-axis to logarithmic
-    )
-)
-
-# Create and register the template
-custom_template = go.layout.Template(layout=custom_layout)
-pio.templates["white_clean_log"] = custom_template
-pio.templates.default = "white_clean_log"
-                            `,
-            }),
-            renderAssetTool
-        ]
+        const agentTools = mcpTools[event.arguments.chatSessionId]
 
         const agent = createReactAgent({
             llm: agentModel,
             tools: agentTools,
         });
 
-        let systemMessageContent = `
-You are a helpful llm agent showing a demo workflow. 
-Use markdown formatting for your responses (like **bold**, *italic*, ## headings, etc.), but DO NOT wrap your response in markdown code blocks.
-Today's date is ${new Date().toLocaleDateString()}.
 
-List the files in the global/notes directory for guidance on how to respond to the user.
-Create intermediate files to store your planned actions, thoughts and work. Use the writeFile tool to create these files. 
-Store them in the 'intermediate' directory. 
-After you complete a planned step, record the results in the file.
-That is, record the completion status each time a planned action is completed. 
-For example, the initial status of an actioned plan should be '[ ]', and when
-completed it should be '[O]' - record the status while proceeding with the work.
+        const { data: systemPromptSetting } = await amplifyClient.graphql({
+            query: getSettings,
+            variables: {
+                id: "system_prompt_setting"
+            }
+        })
 
-When ingesting data:
-- When quering data, first 
-- To generate sample data, use the pysparkTool and not the writeFile tool
+        const systemMessageContent = systemPromptSetting.getSettings?.value || 'You are a helpful AI assistant.'
 
-When creating plots:
-- ALWAYS check for and use existing files and data tables before generating new ones
-- If a table has already been generated, reuse that data instead of regenerating it
 
-When creating reports:
-- Use iframes to display plots or graphics
-- Use the writeFile tool to create the first draft of the report file
-- Use html formatting for the report
-- Put reports in the 'reports' directory
-- IMPORTANT: When referencing files in HTML (links or iframes):
-  * Always use paths relative to the workspace root (no ../ needed)
-  * For plots: use "plots/filename.html"
-  * For reports: use "reports/filename.html"
-  * For data files: use "data/filename.csv"
-  * Example iframe: <iframe src="plots/well_production_plot.html" width="100%" height="500px" frameborder="0"></iframe>
-  * Example link: <a href="data/production_data.csv">Download Data</a>
+        console.log("system prompt: ", systemMessageContent)
+        
 
-When using the file management tools:
-- The listFiles tool returns separate 'directories' and 'files' fields to clearly distinguish between them
-- To access a directory, include the trailing slash in the path or use the directory name
-- To read a file, use the readFile tool with the complete path including the filename
-- Global files are shared across sessions and are read-only
-- When saving reports to file, use the writeFile tool with html formatting
-
-When using the textToTableTool:
-- IMPORTANT: For simple file searches, just use the identifying text (e.g., "15_9_19_A") as the pattern
-- IMPORTANT: Don't use this file on structured data like csv files. Use the pysparkTool instead.
-- The tool will automatically add wildcards and search broadly if needed
-- For global files, you can use "global/pattern" OR just "pattern" - the tool handles both formats
-- Examples of good patterns:
-  * "15_9_19_A" (finds any file containing this text)
-  * "reports" (finds any file containing "reports")
-  * ".*\\.txt$" (finds all text files)
-  * "data/.*\\.yaml$" (finds YAML files in the data directory)
-- Define the table columns with a clear description of what to extract
-- Results are automatically sorted by date if available (chronological order)
-- Use dataToInclude/dataToExclude to prioritize certain types of information
-- When reading well reports, always include a column for a description of the well event
-        `//.replace(/^\s+/gm, '') //This trims the whitespace from the beginning of each line
+        // The initial invocation can generate the MCP server connection information and tools. Then, if there are no messages, return no response. That way the subsequent invocation which the user sends with a chat message won't have to wait for the mcp tools to load. 
+        if (chatSessionMessages.length === 0) {
+            console.warn('No messages found in chat session')
+            return
+        }
 
         const input = {
             messages: [

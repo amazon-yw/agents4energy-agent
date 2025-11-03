@@ -4,7 +4,7 @@ import axios from 'axios';
 // Removing dependency on amplifyUtils for testing
 // import { setAmplifyEnvVars } from '../../../utils/amplifyUtils';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { setAmplifyEnvVars } from '../../../utils/amplifyUtils';
+import { setAmplifyEnvVars } from './amplifyUtils';
 
 /**
  * Options for processing a signed MCP request
@@ -53,10 +53,10 @@ export interface McpBridgeOptions {
  * @param options Configuration options for the server
  * @returns The HTTP server instance
  */
-export const startMcpBridgeServer = async (options: McpBridgeOptions = {}) => {
+export const startMcpBridgeServer = async (options: McpBridgeOptions = {}): Promise<http.Server> => {
     // await setAmplifyEnvVars();
 
-    const port = options.port || 3010;
+    const port = options.port || 3020;
     const region = options.region || process.env.AWS_REGION;
     const service = options.service || 'lambda';
     // const accessKeyId = options.accessKeyId || process.env.AWS_ACCESS_KEY_ID;
@@ -76,7 +76,8 @@ export const startMcpBridgeServer = async (options: McpBridgeOptions = {}) => {
             const targetUrl = req.headers['target-url'] as string | undefined;
 
             if (!targetUrl) {
-                console.warn('No taget url provided')
+                console.warn(`No taget url provided`)
+                console.warn(`headers: ${JSON.stringify(req.headers)}`)
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ text: "Listener listening" }));
                 return// { text: "Listener listening" }
@@ -115,7 +116,7 @@ export const startMcpBridgeServer = async (options: McpBridgeOptions = {}) => {
                     sessionToken: process.env.AWS_SESSION_TOKEN
                 });
 
-                console.warn('Full request to be sent to the target host: ', opts)
+                // console.warn('Full request to be sent to the target host: ', opts)
 
                 // Convert aws4 signed request to axios config
                 // Create a clean headers object that axios can accept
@@ -140,7 +141,7 @@ export const startMcpBridgeServer = async (options: McpBridgeOptions = {}) => {
                         responseType: 'arraybuffer' // To handle binary responses correctly
                     });
 
-                    console.log('target response body response received: ', targetRes.data);
+                    // console.log('target response body response received: ', targetRes.data);
                     
                     // Convert response headers to format expected by http.ServerResponse
                     const responseHeaders: Record<string, string | string[] | undefined> = {};
@@ -157,7 +158,14 @@ export const startMcpBridgeServer = async (options: McpBridgeOptions = {}) => {
                         res.end(JSON.stringify({ error: 'Gateway Timeout - request took too long to complete' }));
                     } else if (axios.isAxiosError(error) && error.response) {
                         // Forward the error response from the target server
-                        console.error('Target server error response:', error.response.status, ' ', error.response.data);
+                        // Convert buffer to string for better error visibility
+                        let errorMessage = error.response.data;
+                        if (Buffer.isBuffer(errorMessage)) {
+                            errorMessage = errorMessage.toString('utf8');
+                        }
+                        console.error('Target server error response:', error.response.status);
+                        console.error('Error message body:', errorMessage);
+                        console.warn(`headers: ${JSON.stringify(req.headers)}`)
                         res.writeHead(error.response.status, error.response.headers as any);
                         res.end(error.response.data);
                     } else {
@@ -178,22 +186,37 @@ export const startMcpBridgeServer = async (options: McpBridgeOptions = {}) => {
         }
     });
 
-    server.listen(port,
-        async () => {
+    console.warn('MCP bridge server starting on port', port);
+
+    // Return a Promise that resolves when the server is actually listening
+    return new Promise((resolve, reject) => {
+        server.listen(port, async (error?: Error) => {
+            if (error) {
+                console.error('Error starting MCP bridge server:', error);
+                reject(error);
+                return;
+            }
+
             try {
+                // Perform health check
                 const proxyRes = await fetch(`http://localhost:${port}/proxy`);
                 const data = await proxyRes.text();
                 console.warn('Proxy server started successfully on port', port);
                 console.warn('Proxy health check result:', data);
-            } catch (error) {
-                console.error('Error during proxy server startup:', error);
+                resolve(server);
+            } catch (healthCheckError) {
+                console.error('Error during proxy server health check:', healthCheckError);
+                // Still resolve since the server is listening, health check failure is not critical
+                resolve(server);
             }
-        }
-    );
+        });
 
-    console.warn('MCP bridge server starting on port', port);
-
-    return server;
+        // Handle server errors
+        server.on('error', (error) => {
+            console.error('MCP bridge server error:', error);
+            reject(error);
+        });
+    });
 }
 
 /**

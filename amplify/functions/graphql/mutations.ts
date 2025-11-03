@@ -57,13 +57,6 @@ export const createChatSession = /* GraphQL */ `mutation CreateChatSession(
     name
     owner
     updatedAt
-    workSteps {
-      description
-      name
-      result
-      status
-      __typename
-    }
     __typename
   }
 }
@@ -92,6 +85,37 @@ export const createDummyModelToAddIamDirective = /* GraphQL */ `mutation CreateD
 ` as GeneratedMutation<
   APITypes.CreateDummyModelToAddIamDirectiveMutationVariables,
   APITypes.CreateDummyModelToAddIamDirectiveMutation
+>;
+export const createMcpServer = /* GraphQL */ `mutation CreateMcpServer(
+  $condition: ModelMcpServerConditionInput
+  $input: CreateMcpServerInput!
+) {
+  createMcpServer(condition: $condition, input: $input) {
+    createdAt
+    enabled
+    headers {
+      key
+      value
+      __typename
+    }
+    id
+    name
+    owner
+    signRequestsWithAwsCreds
+    tools {
+      description
+      name
+      schema
+      __typename
+    }
+    updatedAt
+    url
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateMcpServerMutationVariables,
+  APITypes.CreateMcpServerMutation
 >;
 export const createProject = /* GraphQL */ `mutation CreateProject(
   $condition: ModelProjectConditionInput
@@ -130,6 +154,24 @@ export const createProject = /* GraphQL */ `mutation CreateProject(
 ` as GeneratedMutation<
   APITypes.CreateProjectMutationVariables,
   APITypes.CreateProjectMutation
+>;
+export const createSettings = /* GraphQL */ `mutation CreateSettings(
+  $condition: ModelSettingsConditionInput
+  $input: CreateSettingsInput!
+) {
+  createSettings(condition: $condition, input: $input) {
+    createdAt
+    id
+    name
+    owner
+    updatedAt
+    value
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateSettingsMutationVariables,
+  APITypes.CreateSettingsMutation
 >;
 export const deleteChatMessage = /* GraphQL */ `mutation DeleteChatMessage(
   $condition: ModelChatMessageConditionInput
@@ -180,13 +222,6 @@ export const deleteChatSession = /* GraphQL */ `mutation DeleteChatSession(
     name
     owner
     updatedAt
-    workSteps {
-      description
-      name
-      result
-      status
-      __typename
-    }
     __typename
   }
 }
@@ -215,6 +250,37 @@ export const deleteDummyModelToAddIamDirective = /* GraphQL */ `mutation DeleteD
 ` as GeneratedMutation<
   APITypes.DeleteDummyModelToAddIamDirectiveMutationVariables,
   APITypes.DeleteDummyModelToAddIamDirectiveMutation
+>;
+export const deleteMcpServer = /* GraphQL */ `mutation DeleteMcpServer(
+  $condition: ModelMcpServerConditionInput
+  $input: DeleteMcpServerInput!
+) {
+  deleteMcpServer(condition: $condition, input: $input) {
+    createdAt
+    enabled
+    headers {
+      key
+      value
+      __typename
+    }
+    id
+    name
+    owner
+    signRequestsWithAwsCreds
+    tools {
+      description
+      name
+      schema
+      __typename
+    }
+    updatedAt
+    url
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteMcpServerMutationVariables,
+  APITypes.DeleteMcpServerMutation
 >;
 export const deleteProject = /* GraphQL */ `mutation DeleteProject(
   $condition: ModelProjectConditionInput
@@ -253,6 +319,24 @@ export const deleteProject = /* GraphQL */ `mutation DeleteProject(
 ` as GeneratedMutation<
   APITypes.DeleteProjectMutationVariables,
   APITypes.DeleteProjectMutation
+>;
+export const deleteSettings = /* GraphQL */ `mutation DeleteSettings(
+  $condition: ModelSettingsConditionInput
+  $input: DeleteSettingsInput!
+) {
+  deleteSettings(condition: $condition, input: $input) {
+    createdAt
+    id
+    name
+    owner
+    updatedAt
+    value
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteSettingsMutationVariables,
+  APITypes.DeleteSettingsMutation
 >;
 export const publishResponseStreamChunk = /* GraphQL */ `mutation PublishResponseStreamChunk(
   $chatSessionId: String!
@@ -323,13 +407,6 @@ export const updateChatSession = /* GraphQL */ `mutation UpdateChatSession(
     name
     owner
     updatedAt
-    workSteps {
-      description
-      name
-      result
-      status
-      __typename
-    }
     __typename
   }
 }
@@ -358,6 +435,37 @@ export const updateDummyModelToAddIamDirective = /* GraphQL */ `mutation UpdateD
 ` as GeneratedMutation<
   APITypes.UpdateDummyModelToAddIamDirectiveMutationVariables,
   APITypes.UpdateDummyModelToAddIamDirectiveMutation
+>;
+export const updateMcpServer = /* GraphQL */ `mutation UpdateMcpServer(
+  $condition: ModelMcpServerConditionInput
+  $input: UpdateMcpServerInput!
+) {
+  updateMcpServer(condition: $condition, input: $input) {
+    createdAt
+    enabled
+    headers {
+      key
+      value
+      __typename
+    }
+    id
+    name
+    owner
+    signRequestsWithAwsCreds
+    tools {
+      description
+      name
+      schema
+      __typename
+    }
+    updatedAt
+    url
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateMcpServerMutationVariables,
+  APITypes.UpdateMcpServerMutation
 >;
 export const updateProject = /* GraphQL */ `mutation UpdateProject(
   $condition: ModelProjectConditionInput
@@ -396,4 +504,22 @@ export const updateProject = /* GraphQL */ `mutation UpdateProject(
 ` as GeneratedMutation<
   APITypes.UpdateProjectMutationVariables,
   APITypes.UpdateProjectMutation
+>;
+export const updateSettings = /* GraphQL */ `mutation UpdateSettings(
+  $condition: ModelSettingsConditionInput
+  $input: UpdateSettingsInput!
+) {
+  updateSettings(condition: $condition, input: $input) {
+    createdAt
+    id
+    name
+    owner
+    updatedAt
+    value
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateSettingsMutationVariables,
+  APITypes.UpdateSettingsMutation
 >;

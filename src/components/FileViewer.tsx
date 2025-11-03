@@ -1,8 +1,11 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { getUrl } from 'aws-amplify/storage';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, useTheme } from '@mui/material';
+import { Theme } from '@mui/material/styles';
 import AceEditor from 'react-ace';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/mode-json';
@@ -10,6 +13,75 @@ import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/mode-html';
 import 'ace-builds/src-noconflict/mode-text';
 import 'ace-builds/src-noconflict/theme-github';
+
+/**
+ * Generates CSS styles based on the MUI theme to inject into HTML iframes
+ * This allows raw HTML files to use the app's theme colors and typography
+ */
+const generateThemeStyles = (theme: Theme): string => `
+  <style>
+    :root {
+      /* Color palette */
+      --primary-main: ${theme.palette.primary.main};
+      --primary-light: ${theme.palette.primary.light};
+      --primary-dark: ${theme.palette.primary.dark};
+      --secondary-main: ${theme.palette.secondary.main};
+      --secondary-light: ${theme.palette.secondary.light};
+      --secondary-dark: ${theme.palette.secondary.dark};
+      --background-default: ${theme.palette.background.default};
+      --background-paper: ${theme.palette.background.paper};
+      --text-primary: ${theme.palette.text.primary};
+      --text-secondary: ${theme.palette.text.secondary};
+      --error-main: ${theme.palette.error.main};
+      --success-main: ${theme.palette.success.main};
+      --warning-main: ${theme.palette.warning.main};
+      --info-main: ${theme.palette.info.main};
+    }
+    
+    /* Base styles */
+    body {
+      font-family: ${theme.typography.fontFamily};
+      color: var(--text-primary);
+      background-color: var(--background-paper);
+      margin: 0;
+      padding: 16px;
+      line-height: 1.6;
+    }
+    
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--text-primary);
+    }
+
+    /* Links */
+    a {
+      color: var(--info-main);
+    }
+    
+    th {
+      background-color: var(--background-default);
+    }
+    
+    /* Blockquotes */
+    blockquote {
+      border-left: 4px solid var(--primary-main);
+      color: var(--text-secondary);
+    }
+    
+    /* Utility classes */
+    .primary { color: var(--primary-main); }
+    .secondary { color: var(--secondary-main); }
+    .error { color: var(--error-main); }
+    .success { color: var(--success-main); }
+    .warning { color: var(--warning-main); }
+    .info { color: var(--info-main); }
+    
+    .bg-primary { background-color: var(--primary-main); color: white; }
+    .bg-secondary { background-color: var(--secondary-main); color: white; }
+    .bg-paper { background-color: var(--background-paper); }
+    .bg-default { background-color: var(--background-default); }
+  </style>
+`;
 
 interface FileViewerProps {
   s3Key: string;
@@ -28,6 +100,7 @@ export default function FileViewer({
   onContentTypeChange,
   content
 }: FileViewerProps) {
+  const theme = useTheme();
   const [selectedFileUrl, setSelectedFileUrl] = useState<URL>();
   const [loading, setLoading] = useState<boolean>(true);
   const [iframeLoading, setIframeLoading] = useState<boolean>(true);
@@ -37,6 +110,7 @@ export default function FileViewer({
 
   const fileExtension = s3Key.split('.').pop()?.toLowerCase() || 'text';
   const isHtmlFile = fileExtension === 'html';
+  const isMarkdownFile = fileExtension === 'md' || fileExtension === 'markdown';
 
   useEffect(() => {
     console.log('s3Key: ', s3Key);
@@ -145,6 +219,43 @@ export default function FileViewer({
     }
 
     // Render HTML files in iframe when not in edit mode
+    // Inject theme styles into the HTML content
+    let styledHtmlContent: string;
+    const htmlContent = fileContent || "";
+    
+    // Check if the HTML file already has a complete structure
+    const hasHtmlTag = /<html[\s>]/i.test(htmlContent);
+    const hasHeadTag = /<head[\s>]/i.test(htmlContent);
+    
+    if (hasHtmlTag && hasHeadTag) {
+      // If it's a complete HTML file, inject the theme styles into the existing <head>
+      styledHtmlContent = htmlContent.replace(
+        /<head[\s>]/i,
+        `<head>\n${generateThemeStyles(theme)}`
+      );
+    } else if (hasHtmlTag && !hasHeadTag) {
+      // If it has <html> but no <head>, add a head section
+      styledHtmlContent = htmlContent.replace(
+        /<html[\s>]/i,
+        `<html>\n<head>\n${generateThemeStyles(theme)}\n</head>`
+      );
+    } else {
+      // If it's just HTML fragments, wrap it in a complete structure
+      styledHtmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            ${generateThemeStyles(theme)}
+          </head>
+          <body>
+            ${htmlContent}
+          </body>
+        </html>
+      `;
+    }
+
     return (
       <div className="w-full h-full relative">
         {iframeLoading && (
@@ -154,8 +265,8 @@ export default function FileViewer({
         )}
 
         <iframe
-          srcDoc={fileContent || ""}
-          // src={selectedFileUrl?.toString()}
+          srcDoc={styledHtmlContent}
+          // srcDoc={htmlContent}
           className="w-full h-full"
           style={{
             border: 'none',
@@ -210,6 +321,50 @@ export default function FileViewer({
               tabSize: 2,
             }}
           />
+        </div>
+      );
+    }
+
+    // For markdown files, use ReactMarkdown with custom styling
+    if (isMarkdownFile) {
+      return (
+        <div style={{ 
+          height: '100%', 
+          width: '100%', 
+          overflow: 'auto', 
+          padding: '20px',
+          backgroundColor: '#ffffff',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          lineHeight: '1.6',
+          color: '#333333'
+        }}>
+          <div style={{
+            maxWidth: '800px',
+            margin: '0 auto'
+          }}>
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              components={{
+                // Custom styling for markdown elements
+                h1: ({children}) => <h1 style={{borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '20px'}}>{children}</h1>,
+                h2: ({children}) => <h2 style={{borderBottom: '1px solid #eee', paddingBottom: '8px', marginBottom: '16px'}}>{children}</h2>,
+                h3: ({children}) => <h3 style={{marginBottom: '12px'}}>{children}</h3>,
+                p: ({children}) => <p style={{marginBottom: '16px'}}>{children}</p>,
+                ul: ({children}) => <ul style={{marginBottom: '16px', paddingLeft: '20px'}}>{children}</ul>,
+                ol: ({children}) => <ol style={{marginBottom: '16px', paddingLeft: '20px'}}>{children}</ol>,
+                li: ({children}) => <li style={{marginBottom: '4px'}}>{children}</li>,
+                blockquote: ({children}) => <blockquote style={{borderLeft: '4px solid #ddd', paddingLeft: '16px', margin: '16px 0', fontStyle: 'italic', color: '#666'}}>{children}</blockquote>,
+                code: ({children}) => <code style={{backgroundColor: '#f6f8fa', padding: '2px 4px', borderRadius: '3px', fontSize: '0.9em', fontFamily: 'Monaco, Consolas, "Liberation Mono", "Courier New", monospace'}}>{children}</code>,
+                pre: ({children}) => <pre style={{backgroundColor: '#f6f8fa', padding: '16px', borderRadius: '6px', overflow: 'auto', fontSize: '0.9em', fontFamily: 'Monaco, Consolas, "Liberation Mono", "Courier New", monospace', marginBottom: '16px'}}>{children}</pre>,
+                table: ({children}) => <table style={{borderCollapse: 'collapse', width: '100%', marginBottom: '16px'}}>{children}</table>,
+                th: ({children}) => <th style={{border: '1px solid #ddd', padding: '8px', backgroundColor: '#f6f8fa', textAlign: 'left'}}>{children}</th>,
+                td: ({children}) => <td style={{border: '1px solid #ddd', padding: '8px'}}>{children}</td>,
+                a: ({children, href}) => <a href={href} style={{color: '#0366d6', textDecoration: 'none'}} onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}>{children}</a>
+              }}
+            >
+              {content || fileContent || ''}
+            </ReactMarkdown>
+          </div>
         </div>
       );
     }

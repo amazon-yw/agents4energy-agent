@@ -57,13 +57,6 @@ export const onCreateChatSession = /* GraphQL */ `subscription OnCreateChatSessi
     name
     owner
     updatedAt
-    workSteps {
-      description
-      name
-      result
-      status
-      __typename
-    }
     __typename
   }
 }
@@ -92,6 +85,37 @@ export const onCreateDummyModelToAddIamDirective = /* GraphQL */ `subscription O
 ` as GeneratedSubscription<
   APITypes.OnCreateDummyModelToAddIamDirectiveSubscriptionVariables,
   APITypes.OnCreateDummyModelToAddIamDirectiveSubscription
+>;
+export const onCreateMcpServer = /* GraphQL */ `subscription OnCreateMcpServer(
+  $filter: ModelSubscriptionMcpServerFilterInput
+  $owner: String
+) {
+  onCreateMcpServer(filter: $filter, owner: $owner) {
+    createdAt
+    enabled
+    headers {
+      key
+      value
+      __typename
+    }
+    id
+    name
+    owner
+    signRequestsWithAwsCreds
+    tools {
+      description
+      name
+      schema
+      __typename
+    }
+    updatedAt
+    url
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateMcpServerSubscriptionVariables,
+  APITypes.OnCreateMcpServerSubscription
 >;
 export const onCreateProject = /* GraphQL */ `subscription OnCreateProject(
   $filter: ModelSubscriptionProjectFilterInput
@@ -130,6 +154,24 @@ export const onCreateProject = /* GraphQL */ `subscription OnCreateProject(
 ` as GeneratedSubscription<
   APITypes.OnCreateProjectSubscriptionVariables,
   APITypes.OnCreateProjectSubscription
+>;
+export const onCreateSettings = /* GraphQL */ `subscription OnCreateSettings(
+  $filter: ModelSubscriptionSettingsFilterInput
+  $owner: String
+) {
+  onCreateSettings(filter: $filter, owner: $owner) {
+    createdAt
+    id
+    name
+    owner
+    updatedAt
+    value
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateSettingsSubscriptionVariables,
+  APITypes.OnCreateSettingsSubscription
 >;
 export const onDeleteChatMessage = /* GraphQL */ `subscription OnDeleteChatMessage(
   $filter: ModelSubscriptionChatMessageFilterInput
@@ -180,13 +222,6 @@ export const onDeleteChatSession = /* GraphQL */ `subscription OnDeleteChatSessi
     name
     owner
     updatedAt
-    workSteps {
-      description
-      name
-      result
-      status
-      __typename
-    }
     __typename
   }
 }
@@ -215,6 +250,37 @@ export const onDeleteDummyModelToAddIamDirective = /* GraphQL */ `subscription O
 ` as GeneratedSubscription<
   APITypes.OnDeleteDummyModelToAddIamDirectiveSubscriptionVariables,
   APITypes.OnDeleteDummyModelToAddIamDirectiveSubscription
+>;
+export const onDeleteMcpServer = /* GraphQL */ `subscription OnDeleteMcpServer(
+  $filter: ModelSubscriptionMcpServerFilterInput
+  $owner: String
+) {
+  onDeleteMcpServer(filter: $filter, owner: $owner) {
+    createdAt
+    enabled
+    headers {
+      key
+      value
+      __typename
+    }
+    id
+    name
+    owner
+    signRequestsWithAwsCreds
+    tools {
+      description
+      name
+      schema
+      __typename
+    }
+    updatedAt
+    url
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteMcpServerSubscriptionVariables,
+  APITypes.OnDeleteMcpServerSubscription
 >;
 export const onDeleteProject = /* GraphQL */ `subscription OnDeleteProject(
   $filter: ModelSubscriptionProjectFilterInput
@@ -253,6 +319,24 @@ export const onDeleteProject = /* GraphQL */ `subscription OnDeleteProject(
 ` as GeneratedSubscription<
   APITypes.OnDeleteProjectSubscriptionVariables,
   APITypes.OnDeleteProjectSubscription
+>;
+export const onDeleteSettings = /* GraphQL */ `subscription OnDeleteSettings(
+  $filter: ModelSubscriptionSettingsFilterInput
+  $owner: String
+) {
+  onDeleteSettings(filter: $filter, owner: $owner) {
+    createdAt
+    id
+    name
+    owner
+    updatedAt
+    value
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteSettingsSubscriptionVariables,
+  APITypes.OnDeleteSettingsSubscription
 >;
 export const onUpdateChatMessage = /* GraphQL */ `subscription OnUpdateChatMessage(
   $filter: ModelSubscriptionChatMessageFilterInput
@@ -303,13 +387,6 @@ export const onUpdateChatSession = /* GraphQL */ `subscription OnUpdateChatSessi
     name
     owner
     updatedAt
-    workSteps {
-      description
-      name
-      result
-      status
-      __typename
-    }
     __typename
   }
 }
@@ -338,6 +415,37 @@ export const onUpdateDummyModelToAddIamDirective = /* GraphQL */ `subscription O
 ` as GeneratedSubscription<
   APITypes.OnUpdateDummyModelToAddIamDirectiveSubscriptionVariables,
   APITypes.OnUpdateDummyModelToAddIamDirectiveSubscription
+>;
+export const onUpdateMcpServer = /* GraphQL */ `subscription OnUpdateMcpServer(
+  $filter: ModelSubscriptionMcpServerFilterInput
+  $owner: String
+) {
+  onUpdateMcpServer(filter: $filter, owner: $owner) {
+    createdAt
+    enabled
+    headers {
+      key
+      value
+      __typename
+    }
+    id
+    name
+    owner
+    signRequestsWithAwsCreds
+    tools {
+      description
+      name
+      schema
+      __typename
+    }
+    updatedAt
+    url
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateMcpServerSubscriptionVariables,
+  APITypes.OnUpdateMcpServerSubscription
 >;
 export const onUpdateProject = /* GraphQL */ `subscription OnUpdateProject(
   $filter: ModelSubscriptionProjectFilterInput
@@ -376,6 +484,24 @@ export const onUpdateProject = /* GraphQL */ `subscription OnUpdateProject(
 ` as GeneratedSubscription<
   APITypes.OnUpdateProjectSubscriptionVariables,
   APITypes.OnUpdateProjectSubscription
+>;
+export const onUpdateSettings = /* GraphQL */ `subscription OnUpdateSettings(
+  $filter: ModelSubscriptionSettingsFilterInput
+  $owner: String
+) {
+  onUpdateSettings(filter: $filter, owner: $owner) {
+    createdAt
+    id
+    name
+    owner
+    updatedAt
+    value
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateSettingsSubscriptionVariables,
+  APITypes.OnUpdateSettingsSubscription
 >;
 export const recieveResponseStreamChunk = /* GraphQL */ `subscription RecieveResponseStreamChunk($chatSessionId: String!) {
   recieveResponseStreamChunk(chatSessionId: $chatSessionId) {
